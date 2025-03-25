@@ -1,3 +1,49 @@
+resource "aws_iam_policy" "ops_user_view_only_policy" {
+  name        = "OpsUserViewOnlyPolicy"
+  description = "Grants view-only permissions to everything within the ops Kubernetes namespace"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "eks:DescribeCluster",
+          "eks:DescribeNodegroup",
+          "eks:ListUpdates",
+          "eks:DescribeUpdate",
+          "eks:ListClusters",
+          "eks:ListNodegroups",
+          "eks:ListFargateProfiles",
+          "eks:DescribeFargateProfile"
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+      {
+        Action = "eks:DescribeNamespace"
+        Effect   = "Allow"
+        Resource = "arn:aws:eks:${var.aws_region}:${var.account_id}:cluster/${var.cluster_name}/namespace/ops"
+      },
+      {
+        Action = [
+          "eks:ListPods",
+          "eks:DescribePod",
+          "eks:ListServices",
+          "eks:DescribeService",
+          "eks:ListDeployments",
+          "eks:DescribeDeployment",
+          "eks:ListReplicaSets",
+          "eks:DescribeReplicaSet",
+          "eks:ListStatefulSets",
+          "eks:DescribeStatefulSet"
+        ]
+        Effect   = "Allow"
+        Resource = "arn:aws:eks:${var.aws_region}:${var.account_id}:cluster/${var.cluster_name}/namespace/ops/*"
+      }
+    ]
+  })
+}
+
 resource "aws_iam_role" "eks_cluster_role" {
   name = "eks-cluster-role"
   assume_role_policy = jsonencode({
@@ -30,6 +76,27 @@ resource "aws_iam_role" "eks_worker_role" {
   })
 }
 
+resource "aws_iam_role" "ops_user_role" {
+  name               = "OpsUserRole"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action    = "sts:AssumeRole"
+        Effect    = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::1234566789001:user/ops-alice"
+        }
+        Condition = {
+          IpAddress = {
+            "aws:SourceIp" = "52.94.236.248"
+          }
+        }
+      }
+    ]
+  })
+}
+
 resource "aws_iam_role_policy_attachment" "eks_cluster_policy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
   role       = aws_iam_role.eks_cluster_role.name
@@ -43,4 +110,9 @@ resource "aws_iam_role_policy_attachment" "eks_worker_policy_attachment" {
 resource "aws_iam_role_policy_attachment" "ec2_container_registry_policy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
   role       = aws_iam_role.eks_worker_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "attach_view_only_policy" {
+  policy_arn = aws_iam_policy.ops_user_view_only_policy.arn
+  role       = aws_iam_role.ops_user_role.name
 }
