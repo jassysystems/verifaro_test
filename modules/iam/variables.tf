@@ -10,3 +10,8 @@ variable "account_id" {
 variable "cluster_name" {
   type    = string
 }
+
+variable "namespace" {
+  type    = string
+  default = "ops"
+}

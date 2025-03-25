@@ -25,3 +25,11 @@ module "monitoring" {
   source       = "./modules/monitoring"
   cluster_name = var.cluster_name
 }
+
+resource "kubernetes_service_account" "order_processor_sa" {
+  metadata {
+    name      = "order-processor"
+    namespace = var.namespace
+  }
+  automount_service_account_token = true
+}

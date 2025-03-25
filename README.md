@@ -2,22 +2,23 @@
 
 Section 1:
 
-a. Add an OpsUser IAM role, granng it view only permissions to everything within the ops K8s namespace. 
-The user arn:aws:iam::1234566789001:user/ops-alice will be using the role from the IP 52.94.236.248 
+a. Add components so that pods using the order-processor K8s service account get credenals injected granng them permissions to enumerate and read objects 
+from the incoming-orders S3 bucket.
 
 # Explanation
 
-IAM Policy:
+To allow pods using the order-processor Kubernetes service account to get credentials injected for accessing the incoming-orders S3 bucket, we need to use IAM roles for service accounts (IRSA) in Amazon EKS. This allows Kubernetes workloads (pods) to assume IAM roles and use those credentials to access AWS resources securely.
 
-This policy grants view-only access to resources in the ops namespace in the EKS cluster. It allows actions such as Describe and List for resources like pods, services, deployments, replica sets, stateful sets, etc., but only in the ops namespace.
+The process involves the following steps:
 
-IAM Role:
+Create an IAM policy granting permissions to read objects from the incoming-orders S3 bucket.
 
-The OpsUserRole role is created with a trust policy that allows the user ops-alice to assume the role only from the IP address 52.94.236.248. The trust relationship is enforced by the aws:SourceIp condition.
+Create an IAM role that can be assumed by the Kubernetes service account (order-processor).
 
-Policy Attachment:
+Associate the IAM role with the Kubernetes service account using the OIDC identity provider.
 
-The policy is attached to the OpsUserRole so that when ops-alice assumes the role, they will have the permissions defined in the policy (view-only permissions in the ops namespace).
+Deploy the Kubernetes Service Account and ensure that pods using this service account can use the IAM role to access the S3 bucket.
+
 
 # How to run this on Dev Environment for e.g.
 

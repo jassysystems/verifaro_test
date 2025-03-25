@@ -41,3 +41,11 @@ resource "aws_eks_addon" "kube_proxy" {
   addon_name   = "kube-proxy"
   version      = "latest"
 }
+
+resource "kubernetes_service_account" "order_processor_sa" {
+  metadata {
+    name      = "order-processor"
+    namespace = var.namespace
+  }
+  automount_service_account_token = true
+}
