@@ -2,10 +2,22 @@
 
 Section 1:
 
-a. Create a Terraform conﬁguration to deploy an EKS cluster into AWS. This should be in a new VPC and include all other necessary resources. 
-The new cluster should be designed to run up to 250 pods, handle a total peak memory usage of 28GB per node and be resilient to the failure of a single availability
-zone. The administrator should be able to use AWS services to monitor metrics and view the logs of both the cluster and applications running in it. 
+a. Add an OpsUser IAM role, granng it view only permissions to everything within the ops K8s namespace. 
+The user arn:aws:iam::1234566789001:user/ops-alice will be using the role from the IP 52.94.236.248 
 
+# Explanation
+
+IAM Policy:
+
+This policy grants view-only access to resources in the ops namespace in the EKS cluster. It allows actions such as Describe and List for resources like pods, services, deployments, replica sets, stateful sets, etc., but only in the ops namespace.
+
+IAM Role:
+
+The OpsUserRole role is created with a trust policy that allows the user ops-alice to assume the role only from the IP address 52.94.236.248. The trust relationship is enforced by the aws:SourceIp condition.
+
+Policy Attachment:
+
+The policy is attached to the OpsUserRole so that when ops-alice assumes the role, they will have the permissions defined in the policy (view-only permissions in the ops namespace).
 
 # How to run this on Dev Environment for e.g.
 
