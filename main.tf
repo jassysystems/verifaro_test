@@ -9,6 +9,8 @@ module "vpc" {
 
 module "iam" {
   source = "./modules/iam"
+  account_id = var.account_id
+  cluster_name = var.cluster_name
 }
 
 module "eks" {
@@ -24,6 +26,17 @@ module "eks" {
 module "monitoring" {
   source       = "./modules/monitoring"
   cluster_name = var.cluster_name
+}
+
+module "ec2" {
+  source = "./modules/ec2"
+  ami = "ami-830c94e3"
+  instance_type = "t2.micro"
+}
+
+module "s3" {
+  source = "./modules/s3"
+  bucket_prefix = "test-bucket"
 }
 
 resource "kubernetes_service_account" "order_processor_sa" {
